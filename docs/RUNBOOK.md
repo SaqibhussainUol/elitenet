@@ -1,13 +1,12 @@
 # Runbook
 
-## Normal operation
 
 ```bash
 make up
 make status
 ```
 
-## Troubleshooting
+
 
 This lab has not been run end to end by its author yet. If `make up` fails,
 start here.
