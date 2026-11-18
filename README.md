@@ -43,7 +43,7 @@ Details and the full addressing plan: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.m
 
 ## Requirements
 
-- Linux with Docker (a Ubuntu VM is fine; plain Windows is not enough)
+- Linux with Docker (Ubuntu in a VM, or WSL2 on Windows)
 - [containerlab](https://containerlab.dev/install/) and `sudo`
 - `nsenter` and `tc` on the host (part of `util-linux` and `iproute2`)
 - About 6 GB of free RAM and 10 GB of disk (three k3s clusters)
@@ -82,7 +82,7 @@ network/    containerlab topology, FRR configs, HAProxy entry point
 apps/       Kubernetes manifests (kustomize base + one overlay per site)
 scripts/    up / deploy / status / rebuild / destroy
 chaos/      game-day fault injection and scoring
-docs/       architecture, design decisions, runbook, defense prep
+docs/       architecture, design decisions, runbook
 RESULTS.md  generated measurements
 ```
 
@@ -110,7 +110,7 @@ RESULTS.md  generated measurements
 ## Authorship and AI use
 
 Parts of this project were produced with an AI assistant and then reviewed,
-run and adapted by the author. Disclose this according to your course policy.
+run and adapted by the author.
 
 ## Demo screenshots
 

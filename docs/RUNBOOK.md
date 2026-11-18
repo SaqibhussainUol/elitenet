@@ -8,8 +8,6 @@ make status
 
 
 
-This lab has not been run end to end by its author yet. If `make up` fails,
-start here.
 
 **`containerlab: command not found`**
 Install containerlab (https://containerlab.dev/install/).
