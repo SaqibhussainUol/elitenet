@@ -1,6 +1,5 @@
 # Architecture
 
-## Components
 
 | Node | Image | Role |
 |---|---|---|
@@ -9,7 +8,7 @@
 | hq-k3s, fa-k3s, fb-k3s | rancher/k3s v1.31.4 | one single-node cluster per site |
 | edge | HAProxy 3.0 | global entry point, health-checks all sites |
 
-## Addressing
+
 
 | Link | Subnet | Ends |
 |---|---|---|
