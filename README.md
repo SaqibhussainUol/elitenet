@@ -1,6 +1,6 @@
-# FieldNet: a self-healing multi-site network for disaster relief
+# EliteNet: a self-healing multi-site network for disaster relief
 
-FieldNet is a multi-site platform that is built, broken, and rebuilt entirely
+EliteNet is a multi-site platform that is built, broken, and rebuilt entirely
 from code. Three sites (a command post and two field clinics) are joined by a
 BGP-routed WAN. Each site runs its own Kubernetes cluster. A global entry point
 keeps one workload reachable while the network around it is deliberately
@@ -111,3 +111,16 @@ RESULTS.md  generated measurements
 
 Parts of this project were produced with an AI assistant and then reviewed,
 run and adapted by the author. Disclose this according to your course policy.
+
+## Demo screenshots
+
+Failover test: HQ site isolated, traffic moves to Field Alpha.
+
+![Failover demo 1](docs/images/failover-1.png)
+
+![Failover demo 2](docs/images/failover-2.png)
+
+![Failover demo 3](docs/images/failover-3.png)
+
+![Failover demo 4](docs/images/failover-4.png)
+
