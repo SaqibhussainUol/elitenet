@@ -1,8 +1,8 @@
 # Design decisions
 
-I built the network with containerlab, which runs real routers (FRRouting) as containers on my laptop. I chose it because it costs nothing and I could cut a link and watch the routes change. Cloud servers with a VPN were another option, but they cost money and hide how the routing works.
+I built the network with containerlab, which runs real routers FRRouting as containers on my system and with FRRouting I could cut a link and watch the routes change. Cloud servers with a VPN were another option, but they cost money and hide how the routing works.
 
-The core and each site have their own AS number and talk BGP. Each site is like a separate organisation, and BGP is the protocol that connects separate networks. HQ and Field Alpha also have a direct link to each other, which gives a second path. When I cut HQ's uplink to the core (the wan-cut test), no request failed, because traffic went through the other site.
+each site have their own AS number and talk BGP. Each site is like a separate organisation, and BGP is the protocol that connects separate networks. HQ and Field Alpha also have a direct link to each other, which gives a second path. When I cut HQ's uplink to the core (the wan-cut test), no request failed, because traffic went through the other site.
 
 HQ and Field Alpha each run their own k3s cluster. If one site dies, the other cluster keeps working. One big cluster across both sites could break when the link between them fails.
 
