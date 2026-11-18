@@ -1,46 +1,19 @@
 # Design decisions
 
-Each entry has a reason and an alternative. Rewrite these in your own words
-once you have run the lab; they are the most defensible part of the project.
+I built the network with containerlab, which runs real routers (FRRouting) as containers on my laptop. I chose it because it costs nothing and I could cut a link and watch the routes change. Cloud servers with a VPN were another option, but they cost money and hide how the routing works.
 
-## 1. Emulate the network with containerlab + FRR
+The core and each site have their own AS number and talk BGP. Each site is like a separate organisation, and BGP is the protocol that connects separate networks. HQ and Field Alpha also have a direct link to each other, which gives a second path. When I cut HQ's uplink to the core (the wan-cut test), no request failed, because traffic went through the other site.
 
-**Why:** real routing protocols, link failures and `tc netem` impairment on a
-laptop, with the topology as a YAML file.
-**Alternative:** cloud VMs with a managed VPN. Realistic, but it costs money
-and hides the routing behaviour this course is about.
+HQ and Field Alpha each run their own k3s cluster. If one site dies, the other cluster keeps working. One big cluster across both sites could break when the link between them fails.
 
-## 2. eBGP everywhere, with a site-to-site triangle
+HAProxy sits in front of the sites. It checks every site every 0.5 seconds. HQ is the main site and Field Alpha is the backup. After 2 failed checks, HAProxy stops sending users to a site. The checks travel over the same virtual network that I break, so a network failure shows up directly in failover.
 
-**Why:** one ASN per site models independent administrative domains, and the
-triangle gives a path that survives the loss of the core.
-**Alternative:** OSPF. Simpler inside one domain, but BGP is what connects
-separately-run sites.
+The app is described in Kubernetes YAML files, with one shared base and one small overlay for each site. This needs only Docker and everything is stored in git. Tools like Flux or Argo CD would keep fixing the clusters automatically, but they are more to set up, so I left them as a next step. The app namespace uses the restricted Pod Security setting, the containers run as a normal user with extra permissions removed, and a network policy blocks all incoming traffic except the one web port. These are cheap to add and good practice.
 
-## 3. One k3s cluster per site
+I used two sites instead of three because three clusters were too much for my laptop's memory. The design is the same, and a third site can be switched on by deleting the .lite file. The app is a simple web page that shows which site answered, with no database, because the project is about the network and the platform, and a database copied between sites is a separate, bigger problem.
 
-**Why:** a failure domain per site. A cluster that spans sites would turn a WAN
-cut into an etcd quorum problem.
-**Alternative:** one stretched cluster. Fewer clusters to manage, worse
-failure behaviour.
+I broke things on purpose and measured what users saw. Cutting one uplink caused no failed requests. A slow, lossy link caused 9 of 136 requests to fail but the site stayed up. A link that looked up but lost every packet caused about 0.9 seconds of outage. Cutting a whole site off caused about 1.7 to 1.9 seconds, and then Field Alpha served the traffic. Freezing the Kubernetes cluster was slowest, about 2.6 seconds, because requests to a frozen cluster wait until they time out. Rebuilding everything from nothing took 303 seconds.
 
-## 4. HAProxy at the edge instead of DNS failover
+Some things went wrong while I built it. The clock inside WSL jumped by 12 hours, so Kubernetes thought its own certificates were not valid yet. Restarting WSL fixed it. The app could not find its settings because they were created in the wrong namespace, and adding the namespace to each overlay fixed that. Downloading the app image inside the cluster was very slow, so the deploy script now downloads it once and loads it into each cluster.
 
-**Why:** health checks cross the emulated WAN, so network faults directly
-affect failover, and the behaviour is easy to measure.
-**Alternative:** a DNS-based global load balancer (for example k8gb).
-Closer to real multi-site setups, but DNS caching makes timing harder to
-measure and it needs more RAM.
-
-## 5. Apply manifests with kustomize from the host
-
-**Why:** needs only Docker, no extra tooling, and the repo is the single source
-of truth. `make deploy` is a manual reconcile.
-**Alternative:** Flux or Argo CD for continuous reconciliation. Listed as the
-next step.
-
-## 6. Stateless workload
-
-**Why:** the project's subject is the network and the platform. Stateful
-replication is a separate problem that would need more time and memory.
-**Alternative:** CloudNativePG across sites, which adds RPO measurement.
+If I had more time, I would add Flux or Argo CD, a database copied between the sites, and DNS-based failover instead of a single HAProxy.
