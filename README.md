@@ -116,11 +116,19 @@ run and adapted by the author. Disclose this according to your course policy.
 
 Failover test: HQ site isolated, traffic moves to Field Alpha.
 
+**1. The lab running in Docker: routers, two Kubernetes clusters and the entry point.**
+
 ![Failover demo 1](docs/images/failover-1.png)
+
+**2. Game-day output: the measured outage and failed probes.**
 
 ![Failover demo 2](docs/images/failover-2.png)
 
+**3. The HQ site serving traffic.**
+
 ![Failover demo 3](docs/images/failover-3.png)
+
+**4. The Relief Beacon web page served by the platform.**
 
 ![Failover demo 4](docs/images/failover-4.png)
 
