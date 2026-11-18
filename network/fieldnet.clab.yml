@@ -1,5 +1,5 @@
 ---
-# FieldNet: three sites + WAN core + global entry point, all emulated.
+# EliteNet: three sites + WAN core + global entry point, all emulated.
 # Every router is FRRouting speaking BGP. Every site runs its own k3s cluster.
 name: fieldnet
 

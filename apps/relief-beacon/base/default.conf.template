@@ -17,6 +17,6 @@ server {
 
     location / {
         default_type text/html;
-        return 200 '<h1>FieldNet Relief Beacon</h1><p>Served by site: <b>${SITE_NAME}</b></p>\n';
+        return 200 '<h1>EliteNet Relief Beacon</h1><p>Served by site: <b>${SITE_NAME}</b></p>\n';
     }
 }
