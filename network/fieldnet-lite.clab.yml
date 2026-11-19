@@ -1,0 +1,108 @@
+---
+# FieldNet LITE: two sites (HQ + Field Alpha) + WAN core + global entry point.
+# Same design as the full lab, sized for a laptop (about 3 GB of RAM).
+name: fieldnet
+
+mgmt:
+  network: fieldnet-mgmt
+  ipv4-subnet: 172.20.20.0/24
+
+topology:
+  nodes:
+    # ---------------- WAN core (AS 65000) ----------------
+    core:
+      kind: linux
+      image: quay.io/frrouting/frr:10.2.1
+      binds:
+        - frr/daemons:/etc/frr/daemons
+        - frr/vtysh.conf:/etc/frr/vtysh.conf
+        - frr/core-lite.conf:/etc/frr/frr.conf
+      exec:
+        - sysctl -w net.ipv4.ip_forward=1
+        - ip addr add 10.0.1.1/30 dev eth1
+        - ip addr add 10.0.2.1/30 dev eth2
+        - ip addr add 10.9.0.1/24 dev eth4
+
+    # ---------------- Site routers ----------------
+    hq-r:
+      kind: linux
+      image: quay.io/frrouting/frr:10.2.1
+      binds:
+        - frr/daemons:/etc/frr/daemons
+        - frr/vtysh.conf:/etc/frr/vtysh.conf
+        - frr/hq-lite.conf:/etc/frr/frr.conf
+      exec:
+        - sysctl -w net.ipv4.ip_forward=1
+        - ip addr add 10.0.1.2/30 dev eth1
+        - ip addr add 10.1.0.1/24 dev eth2
+        - ip addr add 10.0.12.1/30 dev eth3
+
+    fa-r:
+      kind: linux
+      image: quay.io/frrouting/frr:10.2.1
+      binds:
+        - frr/daemons:/etc/frr/daemons
+        - frr/vtysh.conf:/etc/frr/vtysh.conf
+        - frr/fa-lite.conf:/etc/frr/frr.conf
+      exec:
+        - sysctl -w net.ipv4.ip_forward=1
+        - ip addr add 10.0.2.2/30 dev eth1
+        - ip addr add 10.2.0.1/24 dev eth2
+        - ip addr add 10.0.12.2/30 dev eth3
+
+    # ---------------- One k3s cluster per site ----------------
+    hq-k3s:
+      kind: linux
+      image: rancher/k3s:v1.31.4-k3s1
+      user: root
+      entrypoint: /bin/sh
+      cmd: >-
+        -c "until [ -f /tmp/net-ready ]; do sleep 1; done;
+        exec /bin/k3s server --node-name=hq --node-ip=10.1.0.10
+        --flannel-iface=eth1 --disable=traefik --disable=servicelb
+        --disable=metrics-server --write-kubeconfig-mode=644"
+      exec:
+        - ip addr add 10.1.0.10/24 dev eth1
+        - ip route add 10.9.0.0/24 via 10.1.0.1
+        - ip route add 10.2.0.0/24 via 10.1.0.1
+        - touch /tmp/net-ready
+
+    fa-k3s:
+      kind: linux
+      image: rancher/k3s:v1.31.4-k3s1
+      user: root
+      entrypoint: /bin/sh
+      cmd: >-
+        -c "until [ -f /tmp/net-ready ]; do sleep 1; done;
+        exec /bin/k3s server --node-name=fa --node-ip=10.2.0.10
+        --flannel-iface=eth1 --disable=traefik --disable=servicelb
+        --disable=metrics-server --write-kubeconfig-mode=644"
+      exec:
+        - ip addr add 10.2.0.10/24 dev eth1
+        - ip route add 10.9.0.0/24 via 10.2.0.1
+        - ip route add 10.1.0.0/24 via 10.2.0.1
+        - touch /tmp/net-ready
+
+    # ---------------- Global entry point ----------------
+    edge:
+      kind: linux
+      image: haproxy:3.0-alpine
+      user: root
+      binds:
+        - haproxy/haproxy-lite.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      exec:
+        - ip addr add 10.9.0.10/24 dev eth1
+        - ip route add 10.1.0.0/24 via 10.9.0.1
+        - ip route add 10.2.0.0/24 via 10.9.0.1
+
+  links:
+    # core <-> sites (WAN uplinks)
+    - endpoints: ["core:eth1", "hq-r:eth1"]
+    - endpoints: ["core:eth2", "fa-r:eth1"]
+    # core <-> edge
+    - endpoints: ["core:eth4", "edge:eth1"]
+    # site router <-> site cluster
+    - endpoints: ["hq-r:eth2", "hq-k3s:eth1"]
+    - endpoints: ["fa-r:eth2", "fa-k3s:eth1"]
+    # direct site-to-site link (survives a core failure)
+    - endpoints: ["hq-r:eth3", "fa-r:eth3"]

@@ -1,0 +1,25 @@
+name: validate
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: yamllint
+        run: pip install yamllint && yamllint -c .yamllint .
+
+      - name: shellcheck
+        run: shellcheck -S warning scripts/*.sh chaos/*.sh
+
+      - name: Build every site overlay
+        run: |
+          for s in hq fa fb; do
+            kubectl kustomize apps/relief-beacon/overlays/$s > /tmp/$s.yaml
+          done
+
+      - name: kubeconform (schema check)
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz -C /tmp
+          /tmp/kubeconform -strict -summary /tmp/hq.yaml /tmp/fa.yaml /tmp/fb.yaml

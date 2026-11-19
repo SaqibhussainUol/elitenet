@@ -1,0 +1,22 @@
+server {
+    listen 8080;
+
+    # Tells the caller which site answered. The chaos scripts read this.
+    add_header X-Site "${SITE_NAME}" always;
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location = /whoami {
+        default_type text/plain;
+        return 200 "${SITE_NAME}\n";
+    }
+
+    location / {
+        default_type text/html;
+        return 200 '<h1>FieldNet Relief Beacon</h1><p>Served by site: <b>${SITE_NAME}</b></p>\n';
+    }
+}
