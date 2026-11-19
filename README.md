@@ -23,6 +23,11 @@ git checkout, not from someone's memory.
 - **Security as code.** Restricted Pod Security, default-deny NetworkPolicy,
   non-root containers, dropped capabilities, a PodDisruptionBudget.
 
+## Team
+
+- Saqib Hussain: network design, Kubernetes setup, Load   balancing and failover
+- Aqdas Yasir : Automation, testing
+
 ## Architecture
 
 ```mermaid
