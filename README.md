@@ -115,7 +115,7 @@ RESULTS.md  generated measurements
 ## Authorship and AI use
 
 Parts of this project were produced with an AI assistant and then reviewed,
-run and adapted by the author.
+run and adapted by the Project members Saqib Hussain & Aqdas Yasir.
 
 ## Demo screenshots
 
