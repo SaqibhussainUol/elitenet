@@ -48,3 +48,8 @@ destroy:
 lint:
 > yamllint -c .yamllint .
 > shellcheck -S warning scripts/*.sh chaos/*.sh
+
+.PHONY: about
+about:
+> @echo "EliteNet - multi-site resilient platform"
+> @echo "Team: Saqib Hussain, Aqdas Yasir"
